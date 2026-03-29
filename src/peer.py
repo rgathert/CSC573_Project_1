@@ -2,7 +2,7 @@ import socket
 import os
 import re
 import socket_fun
-
+import multiprocessing as mp
 
 
 ## Initializing all documents to send to server before server connection
@@ -21,20 +21,13 @@ with os.scandir(folder_path) as it:
             rfc_paths[int(rfc_id.group())]  = entry.path
 
 # Generating my sockets these sockets will have a seperate process for them
-p2p_socket = socket_fun.p2pSocket()
-server_socket = socket_fun.serverSocket()
+p2p_socket = socket_fun.p2pRecvSocket()
+client_socket = socket_fun.clientSocket()
 
-# Creating forks for my peer to peer reception socket
-pid = os.fork()
-if pid == 0:
-    # Generating a fork for one process to listen to p2p socket and 
-    # one process to connect to server
-    pid = os.fork()
-    if pid == 0:
-        socket_fun.p2pRecvHandler(p2p_socket)
-        os.exit(0)
-    else:
-        # TODO: Add in server reception
-         os.exit(0)
-         
+# Creating seperate process for my peer to peer reception socket
+p = mp.Process(target = socket_fun.p2pRecvHandler, args=(p2p_socket,))
+p.start()
+# Generating one fork to listen to p2p socket and one for main process
+socket_fun.p2pRecvHandler(p2p_socket)
+
 
