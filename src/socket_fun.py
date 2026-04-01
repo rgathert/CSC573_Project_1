@@ -4,7 +4,7 @@ import multiprocessing as mp
 import sys
 def p2pRecvSocket():
     p2p_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    p2p_socket.bind(('',7734))
+    p2p_socket.bind(('',7736)) # TODO: Use proper port num after testing
     p2p_socket.listen(5) # 5 listeners max
     (address, port) = p2p_socket.getsockname()
     print(f"Peer socket Address: {address}, Port {port}\n")
@@ -15,7 +15,7 @@ def p2pRecvSocket():
 def clientSocket():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        client_socket.connect(('localhost',7734)) #TODO: Get a proper IP
+        client_socket.connect(('localhost',7734)) #TODO: Get a proper IP, update port to 7734 eventually
     except:
         print(f"Error 503: Service Unavailable")
         sys.exit(503)
@@ -25,7 +25,7 @@ def clientSocket():
 # Listening to peer socket
 def p2pRecvHandler(p2p_socket):
     while True:    
-        (peer_connection, peerAddress) = p2p_socket.accept()
+        (peer_connection, peer_address) = p2p_socket.accept()
         p2p_process = mp.Process(target=peerHandling)
         peer_connection.close()
 
