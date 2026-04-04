@@ -4,25 +4,16 @@ import sys
 import multiprocessing as mp
 import command_handle
 from enum_codes import HttpStatus, CommandType, returnPhrase
-
+from server_object import peer, rfc_idx
 VERSION_STR = "P2P-Cl/1.0"
 
-# Creating a peer object (has hostname, and port value)
-class peer:
-    def __init__(self, host_name, port_num):
-        self.host_name = host_name
-        self.port_num = port_num
 
-class rfc_idx:
-    def __init__(self, title, peer_type):
-        self.title = title
-        self.peer = peer_type
 peer_list = []
 rfc_list = []
 
 # Handling server data
 def handleData(data, server_connection, client_name, port_num, peer_list, rfc_list):
-
+    
     # Formatting the data into the fields needed
     (command_type, return_code) = command_handle.ServerRequestParse(data, client_name, port_num)
     
@@ -34,6 +25,7 @@ def handleData(data, server_connection, client_name, port_num, peer_list, rfc_li
     if return_code != HttpStatus.OK:
         server_connection.send(message.encode())
         return
+    
     # HTTP Status is OK
     match command_type:
         
@@ -41,9 +33,10 @@ def handleData(data, server_connection, client_name, port_num, peer_list, rfc_li
             return
         case CommandType.LIST:
             command_handle.List(server_connection, rfc_list)
-            return
         case CommandType.ADD:
             return
+
+    server_connection.send(message.encode())
 
 
 # Server Socket to Listen to Clients
@@ -61,22 +54,28 @@ def clientHandling(server_connection, peer_list, rfc_list):
     (client_part, port_part, rfc_part) = data.split(',')
     client_name = client_part.split(': ')[1]
     port_num = int(port_part.split(': ')[1])
-    rfc_title = rfc_part.split(': ')[1].split()
-
+    rfc_titles = rfc_part.split(': ')[1].split()
     peer_obj = peer(client_name, port_num)
     peer_list.append(peer_obj)
 
-    rfc_list.append(rfc_idx(rfc_title, peer_obj))
+    # Creating title object for each rfc title
+    for title in rfc_titles:
+        rfc_list.append(rfc_idx(title, peer_obj))
+    
+    print(f"Connection Established")
     
     while True:
-        data = server_connection.recv(4096).decode()
-
+        try:
+            data = server_connection.recv(4096)
+        except ConnectionResetError:
+            print(f"Client: {client_name} closed")
+            break
         if not data:
             server_connection.close()
             print(f"Client: {client_name} closed")
-            return 0
-        
-        handle_data(data, server_connection, client_name, port_num)
+            break
+        data = data.decode()
+        handleData(data, server_connection, client_name, port_num, peer_list, rfc_list)
          
             
 
