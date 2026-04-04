@@ -2,6 +2,7 @@ import socket
 import os
 import multiprocessing as mp
 import sys
+from enum_codes import HttpStatus
 def p2pRecvSocket():
     p2p_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     p2p_socket.bind(('',7736)) # TODO: Use proper port num after testing
@@ -17,8 +18,8 @@ def clientSocket():
     try:
         client_socket.connect(('localhost',7734)) #TODO: Get a proper IP, update port to 7734 eventually
     except:
-        print(f"Error 503: Service Unavailable")
-        sys.exit(503)
+        print(f"Error {HttpStatus.SERVICE_UNAVAILABLE}: Service Unavailable")
+        sys.exit(HttpStatus.SERVICE_UNAVAILABLE)
     return client_socket
 
 
