@@ -8,7 +8,7 @@ def p2pRecvSocket():
     p2p_socket.listen(5) # 5 listeners max
     (address, port) = p2p_socket.getsockname()
     print(f"Peer socket Address: {address}, Port {port}\n")
-    return p2p_socket
+    return p2p_socket, address, port
 
 
 # Client socket to connect to server socket

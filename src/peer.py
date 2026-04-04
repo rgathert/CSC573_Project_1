@@ -27,7 +27,7 @@ if __name__ == '__main__':
                 rfc_list = rfc_list + str(rfc_id) + ' '
 
     # Generating my sockets these sockets will have a seperate process for them
-    p2p_socket = socket_fun.p2pRecvSocket()
+    (p2p_socket, p2p_addr, p2p_port) = socket_fun.p2pRecvSocket()
     client_socket = socket_fun.clientSocket()
 
     # Creating seperate process for my peer to peer reception socket
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     # After booting up p2p socket, set up main server connection
 
     # TODO: Make Init Message Dynamic
-    test_message = f"Hostname: peerA, RFC: {rfc_list}"
+    test_message = f"Hostname: peerA, portNum: {p2p_port}, RFC: {rfc_list}"
     client_socket.send(test_message.encode()) 
     response = client_socket.recv(1024)
     print(f"Server Response {response}")

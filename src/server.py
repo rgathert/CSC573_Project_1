@@ -3,8 +3,23 @@ import os
 import sys
 import multiprocessing as mp
 
-host_names = {}
-port_number = {}
+
+# Creating a peer object (has hostname, and port value)
+class peer:
+    def __init__(self, host_name, port_num):
+        host_name: str
+        port_num: int
+
+class rfc_idx:
+    def __init__(self, num, title, hostname):
+        num: int
+        title: str
+        hostname: str
+
+# Initialization of lists
+peer_list = []
+rfc_list = []
+
 # Server Socket to Listen to Clients
 def serverSocket():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -12,20 +27,25 @@ def serverSocket():
     server_socket.listen(5)
     return server_socket
 
-def clientHandling(server_connection):
+def clientHandling(server_connection, peer_list, rfc_list):
     print("Peer_Conn_test")
     data = server_connection.recv(1024).decode()
 
-    (client_part, rfc_part) = data.split(',')
+    (client_part, port_part, rfc_part) = data.split(',')
 
     client_name = client_part.split(': ')[1]
+    port_num = int(port_part.split(': ')[1])
     rfc_id = rfc_part.split(': ')[1].split()
 
-    print(f'Client Hostname: {client_name}')
-    print(f'Mai RFC: = {rfc_id}')
+    
     server_connection.close()
-    print("Connection done test")
+    
+
 if __name__ == '__main__':
+
+
+    
+
     server_socket = serverSocket()
 
 
@@ -34,6 +54,6 @@ if __name__ == '__main__':
 
     while True:
         (server_connection, server_address) = server_socket.accept()
-        server_process = mp.Process(target = clientHandling, args=(server_connection,))
+        server_process = mp.Process(target = clientHandling, args=(server_connection, peer_list, rfc_list))
         server_process.daemon = True
         server_process.start()
