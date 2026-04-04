@@ -12,13 +12,10 @@ class peer:
 
 class rfc_idx:
     def __init__(self, num, title, hostname):
-        num: int
-        title: str
+        rfc_title: str
         hostname: str
 
-# Initialization of lists
-peer_list = []
-rfc_list = []
+
 
 # Server Socket to Listen to Clients
 def serverSocket():
@@ -28,26 +25,34 @@ def serverSocket():
     return server_socket
 
 def clientHandling(server_connection, peer_list, rfc_list):
-    print("Peer_Conn_test")
-    data = server_connection.recv(1024).decode()
+    
+    # TODO: Make sure we can handle large data fields from the client on startup
 
+    data = server_connection.recv(4096).decode()
     (client_part, port_part, rfc_part) = data.split(',')
-
     client_name = client_part.split(': ')[1]
     port_num = int(port_part.split(': ')[1])
-    rfc_id = rfc_part.split(': ')[1].split()
+    rfc_title = rfc_part.split(': ')[1].split()
+
+    peer_list.append({"name": client_name, "port": port_num})
+    rfc_list.append({"rfc_title": rfc_title, "hostname": client_name})
+    
+    while True:
+        data = server_connection.recv(4096).decode()
+
+        if not data:
+            server_connection.close()
+            print(f"Client: {client_name} closed")
 
     
-    server_connection.close()
     
 
 if __name__ == '__main__':
-
-
-    
-
+    manager = mp.Manager()
+    # Initialization of global lists for multiprocessing
+    peer_list = manager.list()
+    rfc_list = manager.list()
     server_socket = serverSocket()
-
 
     # Adding in server specific functions not in general function
     # TODO: Make these functions work to be server specific
@@ -55,5 +60,6 @@ if __name__ == '__main__':
     while True:
         (server_connection, server_address) = server_socket.accept()
         server_process = mp.Process(target = clientHandling, args=(server_connection, peer_list, rfc_list))
+        # Killing demonic child processes if server closes (lol)
         server_process.daemon = True
         server_process.start()
