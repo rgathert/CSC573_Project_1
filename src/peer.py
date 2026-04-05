@@ -8,7 +8,7 @@ import multiprocessing as mp
 ## Initializing all documents to send to server before server connection
 # Grabbing documents in RFC/folder
 
-folder_path = './RFC/'
+folder_path = '../RFC/'
 rfc_paths   = {}
 rfc_list = ''
 if __name__ == '__main__':
@@ -37,10 +37,39 @@ if __name__ == '__main__':
     
 
     # After booting up p2p socket, set up main server connection
-
+    print(f"Local RFC list: {rfc_list}")
+    print(f"Connecting to server...")
     # TODO: Make Init Message Dynamic
     test_message = f"Hostname: peerA, portNum: {p2p_port}, RFC: {rfc_list}"
+    print(f"Sending startup message: {test_message}")
     client_socket.send(test_message.encode()) 
+    
     response = client_socket.recv(1024)
     print(f"Server Response {response}")
-    client_socket.close()
+    # client_socket.close()
+    try:
+        while True:
+            cmd = input("Type 'quit' to exit: ").strip().lower()
+            if cmd == "quit":
+                break
+            elif cmd == "list":
+                msg = f"LIST ALL P2P-CI/1.0\r\nHost: peerA\r\nPort: {p2p_port}\r\n\r\n"
+                client_socket.send(msg.encode())
+                data = client_socket.recv(65535)
+                print(data.decode())
+            elif cmd == "add":
+                rfc_num = input("RFC number: ").strip()
+                title = input("RFC title: ").strip()
+
+                msg = (
+                    f"ADD RFC {rfc_num} P2P-CI/1.0\r\n"
+                    f"Host: peerA\r\n"
+                    f"Port: {p2p_port}\r\n"
+                    f"Title: {title}\r\n\r\n"
+                )
+
+                client_socket.send(msg.encode())
+                data = client_socket.recv(65535)
+                print(data.decode())
+    finally:
+        client_socket.close()

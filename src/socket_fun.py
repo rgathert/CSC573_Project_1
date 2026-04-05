@@ -18,8 +18,8 @@ def clientSocket():
     try:
         client_socket.connect(('localhost',7734)) #TODO: Get a proper IP, update port to 7734 eventually
     except:
-        print(f"Error {HttpStatus.SERVICE_UNAVAILABLE}: Service Unavailable")
-        sys.exit(HttpStatus.SERVICE_UNAVAILABLE)
+        print(f"Error {HttpStatus.SERVICE_UNAVAILABLE.value}: Service Unavailable")
+        sys.exit(HttpStatus.SERVICE_UNAVAILABLE.value)
     return client_socket
 
 

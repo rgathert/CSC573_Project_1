@@ -5,6 +5,8 @@ class peer:
         self.port_num = port_num
 
 class rfc_idx:
-    def __init__(self, title, peer_type):
+    def __init__(self, title: str, rfc_num: int, peer_obj: peer):
         self.title = title
-        self.peer = peer_type
+        self.RFC_num = rfc_num
+        self.host_name = peer_obj.host_name
+        self.port_num = peer_obj.port_num
