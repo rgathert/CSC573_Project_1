@@ -8,7 +8,7 @@ import multiprocessing as mp
 ## Initializing all documents to send to server before server connection
 # Grabbing documents in RFC/folder
 
-folder_path = '../RFC/'
+folder_path = './RFC/'
 rfc_paths   = {}
 rfc_list = ''
 if __name__ == '__main__':
@@ -59,17 +59,25 @@ if __name__ == '__main__':
                 print(data.decode())
             elif cmd == "add":
                 rfc_num = input("RFC number: ").strip()
-                title = input("RFC title: ").strip()
 
+                #TODO: Remove this debug message later on.
                 msg = (
                     f"ADD RFC {rfc_num} P2P-CI/1.0\r\n"
                     f"Host: peerA\r\n"
                     f"Port: {p2p_port}\r\n"
-                    f"Title: {title}\r\n\r\n"
+                    f"Title: {rfc_num}\r\n\r\n"
                 )
 
                 client_socket.send(msg.encode())
                 data = client_socket.recv(65535)
                 print(data.decode())
+            else:
+                print(f"Usage: \r\n"
+                      "LIST: List all RFC's reachable with the connected server\r\n"
+                      "ADD: Add a new RFC to the servers database\r\n"
+                      "GET: Download a new RFC from a peer")
+
     finally:
+        # Closing off the sockets
+        p2p_socket.close()
         client_socket.close()
