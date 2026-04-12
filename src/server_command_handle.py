@@ -71,7 +71,7 @@ def List(header, rfc_list):
     message = header
     print(f"header: {header}")
     for rfc in rfc_list:
-        message = f"{message}\r\n{rfc.RFC_num} {rfc.title}.txt {rfc.host_name} {rfc.port_num}"
+        message = f"{message}\r\n{rfc.RFC_num} {rfc.title} {rfc.host_name} {rfc.port_num}"
 
     return message
 

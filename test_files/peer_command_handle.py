@@ -120,5 +120,5 @@ def listRequest(host_name, p2p_port, client_socket):
     client_socket.send(msg.encode())
 
     # TODO: Remove this later
-    data = client_socket.recv(65535)
+    data = client_socket.recv(4096)
     print(data.decode())
