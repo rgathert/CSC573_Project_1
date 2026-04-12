@@ -94,9 +94,8 @@ def clientHandling(server_connection, peer_list: list, rfc_list: list):
             break
         except KeyboardInterrupt:
             print("Client handler shutting down")
-            server_connection.close()
-        if not data:
-            server_connection.close()
+            break
+        if not data:   
             print(f"Client: {client_name} closed")
             break
         data = data.decode()
@@ -104,8 +103,17 @@ def clientHandling(server_connection, peer_list: list, rfc_list: list):
         print(f"Received command from {client_name}: {data}")
 
         handleData(data, server_connection, client_name, port_num, peer_list, rfc_list)
-         
-            
+    
+
+    server_connection.close()
+    for i in range(len(rfc_list) - 1, -1, -1):
+        if rfc_list[i].host_name == client_name and rfc_list[i].port_num == port_num:
+            del rfc_list[i]
+
+    for i in range(len(peer_list) - 1, -1, -1):
+        if peer_list[i].host_name == client_name and peer_list[i].port_num == port_num:
+            del peer_list[i]
+
 
 
     

@@ -97,7 +97,7 @@ def addRequest(rfc_num, host_name, p2p_port, client_socket, rfc_paths):
             f"Title: {rfc_num}.txt\r\n\r\n")
     
     client_socket.send(msg.encode())
-    data = client_socket.recv(4096)
+    data = client_socket.recv(65535)
 
     return_message = data.decode()
     header_lines = return_message.split("\r\n")
@@ -120,5 +120,5 @@ def listRequest(host_name, p2p_port, client_socket):
     client_socket.send(msg.encode())
 
     # TODO: Remove this later
-    data = client_socket.recv(4096)
+    data = client_socket.recv(65535)
     print(data.decode())
