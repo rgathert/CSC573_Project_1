@@ -16,11 +16,13 @@ def ServerRequestParse(command_string, client_name, port_num):
     method_line = command_lines[0].split(' ')
     host_header = command_lines[1].split(' ')
     port_header = command_lines[2].split(' ')
+
+    # TODO: Remove debugging line before submitting
     print(f"Method Line: {method_line}\nHost Header: {host_header}\nPort Header: {port_header}\n")
 
     # Making sure the host and port header match what is expected, additionally, makes
     # sure our version number is ok.
-    if host_header[0] != "Host:" or (host_header[1]) != client_name:
+    if host_header[0] != "Host:" or host_header[1] != client_name:
         return (CommandType.INVALID, HttpStatus.BAD_REQUEST, None)
     if port_header[0] != "Port:" or int(port_header[1]) != port_num:
         return (CommandType.INVALID, HttpStatus.BAD_REQUEST, None)

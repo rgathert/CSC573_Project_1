@@ -3,7 +3,7 @@ import os
 import re
 import socket_fun
 import multiprocessing as mp
-import peer_command_handle
+
 
 ## Initializing all documents to send to server before server connection
 # Grabbing documents in RFC/folder
@@ -49,10 +49,7 @@ if __name__ == '__main__':
     # client_socket.close()
     try:
         while True:
-            arg_in = input("Type 'quit' to exit: ").strip()
-            args = arg_in.split()
-            cmd = arg_in[0].lower()
-
+            cmd = input("Type 'quit' to exit: ").strip().lower()
             if cmd == "quit":
                 break
             elif cmd == "list":
@@ -74,35 +71,11 @@ if __name__ == '__main__':
                 client_socket.send(msg.encode())
                 data = client_socket.recv(65535)
                 print(data.decode())
-            elif cmd == "get":
-                if len(args) != 4:
-                    print("Usage: GET <rfc_num> <peer_host> <peer_port>")
-                    continue
-
-                rfc_type = args[1]
-                peer_host = args[2]
-
-                try:
-                    peer_port = int(args[3])
-                except:
-                    print("peer_port must be an integer")
-                    continue
-                peer_get_socket = socket_fun.p2pSendHandler(peer_host, peer_port)
-                if peer_get_socket is None:
-                    continue
-                msg = peer_command_handle.getRequest(rfc_type, peer_host)
-                peer_get_socket.send(msg.encode())
-                return_code = socket_fun.fileRecvHandler(peer_get_socket, rfc_type)
-
-                if(return_code != 0):
-                    print("Error During file transfer, please try again")
-                        
-
             else:
                 print(f"Usage: \r\n"
                       "LIST: List all RFC's reachable with the connected server\r\n"
                       "ADD: Add a new RFC to the servers database\r\n"
-                      "GET <rfc_num> <peer_host> <peer_port>: Download a new RFC from a peer\r\n")
+                      "GET: Download a new RFC from a peer")
 
     finally:
         # Closing off the sockets

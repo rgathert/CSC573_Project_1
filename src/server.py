@@ -2,7 +2,7 @@ import socket
 import os
 import sys
 import multiprocessing as mp
-import command_handle
+import server_command_handle
 from enum_codes import HttpStatus, CommandType, returnPhrase
 from server_object import peer, rfc_idx
 VERSION_STR = "P2P-CI/1.0"
@@ -11,11 +11,11 @@ VERSION_STR = "P2P-CI/1.0"
 peer_list = []
 rfc_list = []
 
-# Handling server data
+# Handling server dat
 def handleData(data, server_connection, client_name, port_num, peer_list, rfc_list):
     
     # Formatting the data into the fields needed
-    (command_type, return_code, parsed_data) = command_handle.ServerRequestParse(data, client_name, port_num)
+    (command_type, return_code, parsed_data) = server_command_handle.ServerRequestParse(data, client_name, port_num)
     
     return_phrase = returnPhrase(return_code)
     # Getting status header
@@ -27,33 +27,23 @@ def handleData(data, server_connection, client_name, port_num, peer_list, rfc_li
         return
     
     if command_type == CommandType.LIST:
-        message = command_handle.List(header, rfc_list)
-        response = header + "\r\n" + message + "\r\n"
+        message = server_command_handle.List(header, rfc_list)
+        response = message + "\r\n"
         server_connection.send((response).encode())
         return
     
     if command_type == CommandType.ADD:
         peer_obj = peer(client_name, port_num)
-
         rfc_num = parsed_data["rfc_num"]
         title = parsed_data["title"]
 
-        rfc_list.append(rfc_idx(rfc_num, title, peer_obj))
-
+        server_command_handle.Add(header, rfc_num, peer_obj, rfc_list)
+        
         response_body = f"RFC {rfc_num} {title} {client_name} {port_num}\r\n"
-        response = header + "\r\n" + response_body + "\r\n"
+        response = header + "\r\n" + response_body + "\r\n\r\n"
         server_connection.send(response.encode())
         return
     
-    # HTTP Status is OK
-    # match command_type:
-        
-    #     case CommandType.LOOKUP:
-    #         return
-    #     case CommandType.LIST:
-    #         command_handle.List(server_connection, rfc_list)
-    #     case CommandType.ADD:
-    #         return
 
     server_connection.send(message.encode())
 
@@ -84,7 +74,7 @@ def clientHandling(server_connection, peer_list: list, rfc_list: list):
     
     print(f"Peer list size: {len(peer_list)}") 
 
-    # Creating title object for each rfc title
+    # Creating title object for each rfc title (Im not using titles, just num instead)
     for title in rfc_titles:
         rfc_list.append(rfc_idx(title, rfc_num=title, peer_obj=peer_obj))
         print(f"RFC added -> {title} with RFC number {title} from {client_name}")
