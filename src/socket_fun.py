@@ -54,8 +54,8 @@ def p2pRecvHandler(p2p_socket, rfc_index, host_name):
         
         rfc_num = parsed_request["rfc_val"]
         if rfc_num not in rfc_index:
-            header = f"{VERSION_STR} {return_code.value} {returnPhrase(return_code.value)}"
-            peer_connection.send(((header + "\r\n")).encode())
+            not_found_header = f"{VERSION_STR} {HttpStatus.NOT_FOUND.value} {returnPhrase(HttpStatus.NOT_FOUND)}\r\n\r\n"
+            peer_connection.send((not_found_header).encode())
             peer_connection.close()
             continue
 
@@ -85,7 +85,7 @@ def p2pSendHandler(peer_host, peer_port):
         return None
 
 
-def fileRecvHandler(recv_socket, rfc_num):
+def fileRecvHandler(recv_socket, rfc_num, save_folder):
 
     # Starting out with bytestream then will do conversion later
     buffer =  b""
@@ -95,7 +95,7 @@ def fileRecvHandler(recv_socket, rfc_num):
         chunk = recv_socket.recv(4096)
         if not chunk: #empty connection
              break
-        buffer = buffer + chunk
+        buffer += chunk
     
     # Checking to make sure my header is good, if it is, then check to make sure my byte length is good
     header_idx = buffer.find(b"\r\n\r\n") # Assuming there is not carriage return in the actual file
@@ -128,11 +128,12 @@ def fileRecvHandler(recv_socket, rfc_num):
         print("Error 500 Internal Server Error\n") # TODO: Give this a better statement
 
     # Making a directory in case this peer doesnt have one made yet
-    os.makedirs("./RFC", exist_ok = True)
-    rfc_path = "./RFC/rfc" + rfc_num + ".txt"
+    os.makedirs(save_folder, exist_ok = True)
+    rfc_path = os.path.join(save_folder, f"rfc{rfc_num}.txt")
 
-    f = open(rfc_path,"wb")
-    f.write(rfc_bytes)
+    with open(rfc_path,"wb") as f:
+        f.write(rfc_bytes)
+
     print("Saved RFC Data\n")
     recv_socket.close()
     return 0

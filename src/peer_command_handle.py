@@ -86,25 +86,36 @@ def getRequest(rfc_num, target_host):
 
 def addRequest(rfc_num, host_name, p2p_port, client_socket, rfc_paths):
 
-    file_path = f"./RFC/rfc{rfc_num}.txt"
-    if not os.path.exists(file_path):
-        print(f"Unable to find file\n")
-        return
+    rfc_num = int(rfc_num)
+
+    file_path = rfc_paths.get(rfc_num)
+    if file_path is None or not os.path.exists(file_path):
+        print(f"Unable to find file for RFC {rfc_num}")
+        return -1
 
     msg = (f"ADD RFC {rfc_num} P2P-CI/1.0\r\n"
             f"Host: {host_name}\r\n"
             f"Port: {p2p_port}\r\n"
-            f"Title: {rfc_num}.txt\r\n\r\n")
+            f"Title: rfc{rfc_num}.txt\r\n\r\n")
+    # print("DEBUG addRequest: sending ADD request")
     
     client_socket.send(msg.encode())
     data = client_socket.recv(4096)
+
+    if not data:
+        print("No response from server")
+        return -1
 
     return_message = data.decode()
     header_lines = return_message.split("\r\n")
     status_sections = header_lines[0].split(" ")
 
+    if len(status_sections) < 2:
+        print("Malformed ADD response from server")
+        return -1
+    
     if int(status_sections[1]) == HttpStatus.OK.value:
-        rfc_paths[int(rfc_num)] = file_path
+        rfc_paths[rfc_num] = file_path
 
 
 
@@ -113,7 +124,26 @@ def addRequest(rfc_num, host_name, p2p_port, client_socket, rfc_paths):
 
 
 
-    return
+    return 0
+
+def lookupRequest(rfc_num, host_name, p2p_port, client_socket):
+    msg = (f"LOOKUP RFC {rfc_num} P2P-CI/1.0\r\n"
+           f"Host: {host_name}\r\n"
+           f"Port: {p2p_port}\r\n\r\n"
+           f"Title: rfc{rfc_num}.txt\r\n\r\n")
+    
+    # print(f"DEBUG lookupRequest: sending\n{msg}")
+    
+    client_socket.send(msg.encode())
+    data = client_socket.recv(4096)
+    if not data:
+        # print("DEBUG lookupRequest: no data returned from server")
+        return None
+
+    return_message = data.decode()
+    # print("DEBUG lookupRequest: received response:")
+    print(return_message)
+    return return_message
 
 def listRequest(host_name, p2p_port, client_socket):
     msg = f"LIST ALL P2P-CI/1.0\r\nHost: {host_name}\r\nPort: {p2p_port}\r\n\r\n"

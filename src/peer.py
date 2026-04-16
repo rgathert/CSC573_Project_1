@@ -8,20 +8,24 @@ import sys
 ## Initializing all documents to send to server before server connection
 # Grabbing documents in RFC/folder
 
-folder_path = './RFC/'
+# folder_path = './RFC/'
 rfc_list = ''
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print("Usage: peer.py <peer_name>")
+    if len(sys.argv) != 3:
+        print("Usage: peer.py <peer_name> <rfc_folder>")
         sys.exit(1)
 
     host_name = sys.argv[1]
-    host_name = 'localhost'
+    host_name = 'localhost'   # keep for local testing
+
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    folder_path = os.path.abspath(sys.argv[2])
     if not os.path.exists(folder_path):
         raise FileNotFoundError("Unable to Find Folder: %s", folder_path)
 
     manager = mp.Manager()
     rfc_paths = manager.dict()
+    local_rfcs = []
 
     
 
@@ -33,7 +37,8 @@ if __name__ == '__main__':
                 rfc_id = rfc_id.replace('.txt','')
                 rfc_id = int(rfc_id)
                 rfc_paths[rfc_id]  = entry.path
-                rfc_list = rfc_list + str(rfc_id) + ' '
+                local_rfcs.append(rfc_id)
+                # rfc_list = rfc_list + str(rfc_id) + ' '
 
     # Generating my sockets these sockets will have a seperate process for them
     (p2p_socket, p2p_addr, p2p_port) = socket_fun.p2pRecvSocket()
@@ -46,15 +51,20 @@ if __name__ == '__main__':
     
 
     # After booting up p2p socket, set up main server connection
-    print(f"Local RFC list: {rfc_list}")
+    print(f"Local RFC list: {sorted(local_rfcs)}\n")
     print(f"Connecting to server...")
     # TODO: Make Init Message Dynamic
-    test_message = f"Hostname: {host_name}, portNum: {p2p_port}, RFC: {rfc_list}"
-    print(f"Sending startup message: {test_message}")
-    client_socket.send(test_message.encode()) 
+    # test_message = f"Hostname: {host_name}, portNum: {p2p_port}, RFC: {rfc_list}"
+    # print(f"Sending startup message: {test_message}")
+    # client_socket.send(test_message.encode()) 
+
     
-    response = client_socket.recv(1024)
-    print(f"Server Response {response}")
+    # response = client_socket.recv(1024)
+    # print(f"Server Response {response}")
+    # initial share: send one ADD per local RFC
+    for rfc_id in sorted(local_rfcs):
+        peer_command_handle.addRequest(rfc_id, host_name, p2p_port, client_socket, rfc_paths)
+
     # client_socket.close()
     #TODO: See if there is something else we can do besides the try catch
     try:
@@ -67,6 +77,17 @@ if __name__ == '__main__':
 
             if cmd == "quit":
                 break
+
+            elif cmd == "lookup":
+                if len(args) != 2:
+                    print("Usage: LOOKUP <rfc_num>")
+                    continue
+                peer_command_handle.lookupRequest(args[1], host_name, p2p_port, client_socket)
+                # rfc_num = args[1]
+                # msg = f"LOOKUP RFC {rfc_num} P2P-CI/1.0\r\nHost: {host_name}\r\nPort: {p2p_port}\r\n\r\n"
+                # client_socket.send(msg.encode())
+                # data = client_socket.recv(4096)
+                # print(data.decode())
 
             elif cmd == "list":
                 peer_command_handle.listRequest(host_name, p2p_port, client_socket)
@@ -94,11 +115,14 @@ if __name__ == '__main__':
                     continue
                 msg = peer_command_handle.getRequest(rfc_type, peer_host)
                 peer_get_socket.send(msg.encode())
-                return_code = socket_fun.fileRecvHandler(peer_get_socket, rfc_type)
+                return_code = socket_fun.fileRecvHandler(peer_get_socket, rfc_type, folder_path)
 
                 if(return_code != 0):
                     print("Error During file transfer, please try again")
-                        
+                else:
+                    rfc_paths[int(rfc_type)] = os.path.join(folder_path, f"rfc{rfc_type}.txt")
+                    print("Download succeeded, sending ADD to server...")
+                    peer_command_handle.addRequest(rfc_type, host_name, p2p_port, client_socket, rfc_paths)        
 
             else:
                 print(f"Usage: \r\n"

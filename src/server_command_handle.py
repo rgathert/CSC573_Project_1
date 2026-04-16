@@ -33,7 +33,12 @@ def ServerRequestParse(command_string, client_name, port_num):
     if len(method_line) == 3 and method_line[0] == "LIST" and method_line[1] == "ALL":
         if method_line[2] != "P2P-CI/1.0":
             return (CommandType.LIST, HttpStatus.VERSION_NOT_SUPPORTED, None)
-        return (CommandType.LIST, HttpStatus.OK, None)
+        
+        parsed_data = {
+            "host": host_header[1],
+            "port": int(port_header[1]),
+        }
+        return (CommandType.LIST, HttpStatus.OK, parsed_data)
     
 
     if len(method_line) == 4 and method_line[0] == "ADD" and method_line[1] == "RFC":
@@ -51,32 +56,66 @@ def ServerRequestParse(command_string, client_name, port_num):
         title = title_header[1]        
         rfc_num = method_line[2]
     
-        rfc_data = {
+        parsed_data = {
             "rfc_num": rfc_num,
-            "title": title         
+            "title": title_header[1],
+            "host": host_header[1],
+            "port": int(port_header[1]),
         }
-        
-        return (CommandType.ADD, HttpStatus.OK, rfc_data)
+        return (CommandType.ADD, HttpStatus.OK, parsed_data)
     
-    #if method_line[0] == "LOOKUP" and method_line[1] == "RFC":
-    #    return
-    
+    if len(method_line) == 4 and method_line[0] == "LOOKUP" and method_line[1] == "RFC":
+        if method_line[3] != "P2P-CI/1.0":
+            return (CommandType.LOOKUP, HttpStatus.VERSION_NOT_SUPPORTED, None)
+
+        try:
+            rfc_num = int(method_line[2])
+        except ValueError:
+            return (CommandType.INVALID, HttpStatus.BAD_REQUEST, None)
+
+        title = ""
+        if len(command_lines) >= 4:
+            title_header = command_lines[3].split(': ', 1)
+            if title_header[0] == "Title":
+                title = title_header[1]
+
+        parsed_data = {
+            "rfc_num": rfc_num,
+            "title": title,
+            "host": host_header[1],
+            "port": int(port_header[1]),
+        }
+        return (CommandType.LOOKUP, HttpStatus.OK, parsed_data)
+
     return (CommandType.INVALID, HttpStatus.BAD_REQUEST, None)
 
+def Lookup(header, rfc_num, rfc_list):
+    matches = [rfc for rfc in rfc_list if int(rfc.RFC_num) == int(rfc_num)]
+    if not matches:
+        return None
 
-    
-    
+    response = header + "\r\n"
+    for rfc in matches:
+        response += f"RFC {rfc.RFC_num} {rfc.title} {rfc.host_name} {rfc.port_num}\r\n"
+    response += "\r\n"
+    return response
+ 
 def List(header, rfc_list):
 
-    message = header
-    print(f"header: {header}")
+    message = header + "\r\n"
+    # print(f"header: {header}")
     for rfc in rfc_list:
-        message = f"{message}\r\n{rfc.RFC_num} {rfc.title} {rfc.host_name} {rfc.port_num}"
-
+        message += f"RFC {rfc.RFC_num} {rfc.title} {rfc.host_name} {rfc.port_num}\r\n"
+    message += "\r\n"
     return message
 
-def Add(header, rfc_num, peer_obj, rfc_list):
-    rfc_list.append(rfc_idx(rfc_num, rfc_num, peer_obj))
-    msg = f"RFC {rfc_num} {rfc_num} {peer_obj.host_name} {peer_obj.port_num}\r\n"
-    return msg
+def Add(header, rfc_num, title, peer_obj, rfc_list):
+    for rfc in rfc_list:
+        if (int(rfc.RFC_num) == int(rfc_num) and
+            rfc.host_name == peer_obj.host_name and
+            int(rfc.port_num) == int(peer_obj.port_num)):
+            return header + "\r\n" + f"RFC {rfc_num} {title} {peer_obj.host_name} {peer_obj.port_num}\r\n\r\n"
+
+    rfc_list.append(rfc_idx(title, rfc_num, peer_obj))
+    return header + "\r\n" + f"RFC {rfc_num} {title} {peer_obj.host_name} {peer_obj.port_num}\r\n\r\n"
     
