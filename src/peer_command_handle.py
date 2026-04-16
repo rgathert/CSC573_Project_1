@@ -65,11 +65,11 @@ def fileSend(header, file_path):
     data = f.read()
     f.close()
 
-    content_len_msg = "Content-Length: " + str(len(data)) + "\r\n"
+    content_len_msg = "Content-Length: " + str(len(data.decode().encode())) + "\r\n"
     content_type_msg = "Content-Type: text/plain \r\n"
 
     # Constructing the message
-    msg = header + date_msg + os_msg + file_msg + content_len_msg + content_type_msg + "\r\n" + data.decode()
+    msg = header + date_msg + os_msg + file_msg + content_len_msg + content_type_msg +"\r\n"+ data.decode()
 
     return msg
 

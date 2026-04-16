@@ -126,6 +126,7 @@ def fileRecvHandler(recv_socket, rfc_num, save_folder):
     data_amount = int(content_sizing_sections[1])
     if len(rfc_bytes) != data_amount:
         print("Error 500 Internal Server Error\n") # TODO: Give this a better statement
+        return -1
 
     # Making a directory in case this peer doesnt have one made yet
     os.makedirs(save_folder, exist_ok = True)

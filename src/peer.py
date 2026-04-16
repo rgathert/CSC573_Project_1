@@ -93,8 +93,10 @@ if __name__ == '__main__':
                 peer_command_handle.listRequest(host_name, p2p_port, client_socket)
 
             elif cmd == "add":
-                rfc_num = input("RFC number: ").strip()
-                data = peer_command_handle.addRequest(rfc_num, host_name, p2p_port, client_socket, rfc_paths)  
+                if len(args) != 2:
+                    print("Usage: ADD <rfc_num>")
+                    continue
+                data = peer_command_handle.addRequest(args[1], host_name, p2p_port, client_socket, rfc_paths)  
 
             elif cmd == "get":
 
@@ -121,8 +123,10 @@ if __name__ == '__main__':
                     print("Error During file transfer, please try again")
                 else:
                     rfc_paths[int(rfc_type)] = os.path.join(folder_path, f"rfc{rfc_type}.txt")
-                    print("Download succeeded, sending ADD to server...")
-                    peer_command_handle.addRequest(rfc_type, host_name, p2p_port, client_socket, rfc_paths)        
+
+                    # IDK if we need to add this, it seems like deviation from requirements
+                    #print("Download succeeded sendin to server")
+                    #peer_command_handle.addRequest(rfc_type, host_name, p2p_port, client_socket, rfc_paths)        
 
             else:
                 print(f"Usage: \r\n"
