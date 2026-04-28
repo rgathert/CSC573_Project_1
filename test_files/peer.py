@@ -46,9 +46,7 @@ if __name__ == '__main__':
     p.start()
     
 
-    # After booting up p2p socket, set up main server connection
-    print(f"Local RFC list: {sorted(local_rfcs)}\n")
-    print(f"Connecting to server...")
+   
     
    
     # initial share: send one ADD per local RFC

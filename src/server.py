@@ -117,7 +117,7 @@ if __name__ == '__main__':
     peer_list = manager.list()
     rfc_list = manager.list()
     server_socket = serverSocket()
-    print("Server Running...\n")
+    print("Server Started\n")
 
     # Adding in server specific functions not in general function
     try:
@@ -130,6 +130,6 @@ if __name__ == '__main__':
             server_process.start()
         
     except KeyboardInterrupt:
-        print("Shutting down server...")
+        print("Stopping server\n")
         server_socket.close()
         sys.exit(0)
