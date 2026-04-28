@@ -41,7 +41,6 @@ def p2pRecvHandler(p2p_socket, rfc_index, host_name):
         
         data = peer_connection.recv(4096).decode()
 
-        print(f"{data}\n")
         
         (command_type, return_code, parsed_request) = peer_command_handle.PeerRequestParse(data, host_name)
         
@@ -101,7 +100,6 @@ def fileRecvHandler(recv_socket, rfc_num, save_folder):
     if header_idx == -1:
         print("Error 500 Internal Server error\n") # TODO: Get correct error code
         return -1
-    print(f"{buffer.decode()}\n")
     header = buffer[:header_idx].decode()
 
     rfc_bytes = buffer[header_idx + 4:]
@@ -113,18 +111,20 @@ def fileRecvHandler(recv_socket, rfc_num, save_folder):
     try:
         status_code = int(status_sections[1])
     except:
-        print("Debug need int value\n") # TODO: remove this debug statemnet later with an actual debug
+        #print("Error 400 Bad Request\n") 
         return -1
     
     if status_code != 200:
-        print(f"{status_code} {status_sections[2]}\n")
+        print(f"{header.strip()}\n") 
         return -1
+    else:
+        print(f"{buffer.decode()}")
     
     content_sizing_sections = header_sections[4].split(' ')
 
     data_amount = int(content_sizing_sections[1])
     if len(rfc_bytes) != data_amount:
-        print("Error 500 Internal Server Error\n") # TODO: Give this a better statement
+        print("Error 500 Internal Server Error\n")
         return -1
 
     # Making a directory in case this peer doesnt have one made yet

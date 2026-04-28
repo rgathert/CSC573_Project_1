@@ -101,17 +101,67 @@ if __name__ == '__main__':
                 msg = peer_command_handle.getRequest(rfc_type, peer_host)
                 peer_get_socket.send(msg.encode())
                 return_code = socket_fun.fileRecvHandler(peer_get_socket, rfc_type, folder_path)
-                
+
                 if(return_code != 0):
                     print("Error During file transfer, please try again")
                 else:
                     rfc_paths[int(rfc_type)] = os.path.join(folder_path, f"rfc{rfc_type}.txt")
+            elif cmd == "badget":
+                
+                if len(args) != 4:
+                   print("Usage: BADGET <rfc_num> <peer_host> <peer_port>")
+                   continue
 
+                rfc_type = args[1]
+                peer_host = args[2]
+
+                try:
+                    peer_port = int(args[3])
+                except:
+                    print("peer_port must be an integer")
+                    continue
+                peer_get_socket = socket_fun.p2pSendHandler(peer_host, peer_port)
+                if peer_get_socket is None:
+                    continue
+                msg = peer_command_handle.badGetRequest(rfc_type, peer_host)
+                peer_get_socket.send(msg.encode())
+                return_code = socket_fun.fileRecvHandler(peer_get_socket, rfc_type, folder_path)
+                if(return_code != 0):
+                    print("Error During file transfer, please try again")
+                else:
+                    # This should never hit but just in case
+                    rfc_paths[int(rfc_type)] = os.path.join(folder_path, f"rfc{rfc_type}.txt")
+            elif cmd == "oldget":
+                if len(args) != 4:
+                   print("Usage: OLDGET <rfc_num> <peer_host> <peer_port>")
+                   continue
+
+                rfc_type = args[1]
+                peer_host = args[2]
+
+                try:
+                    peer_port = int(args[3])
+                except:
+                    print("peer_port must be an integer")
+                    continue
+                peer_get_socket = socket_fun.p2pSendHandler(peer_host, peer_port)
+                if peer_get_socket is None:
+                    continue
+                msg = peer_command_handle.oldGetRequest(rfc_type, peer_host)
+                peer_get_socket.send(msg.encode())
+                return_code = socket_fun.fileRecvHandler(peer_get_socket, rfc_type, folder_path)
+                if(return_code != 0):
+                    print("Error During file transfer, please try again")
+                else:
+                    # This should never hit but just in case
+                    rfc_paths[int(rfc_type)] = os.path.join(folder_path, f"rfc{rfc_type}.txt")
             else:
                 print(f"Usage: \r\n"
                       "LIST: List all RFC's reachable with the connected server\r\n"
                       "ADD: Add a new RFC to the servers database\r\n"
-                      "GET <rfc_num> <peer_host> <peer_port>: Download a new RFC from a peer\r\n")
+                      "GET <rfc_num> <peer_host> <peer_port>: Download a new RFC from a peer\r\n"
+                      "BADGET <rfc_num> <peer_host> <peer_port>: Sends a bad request to the peer host and port \r\n" \
+                      "OLDGET <rfc_num> <peer_host> <peer_port>: Sends a get with a different software version \r\n")
 
     finally:
         # Closing off the sockets

@@ -6,6 +6,8 @@ import os
 
 VERSION_STR = "P2P-CI/1.0"
 
+OLD_VERSION_STR = "P2P-CI/0.1"
+
 # Parsing a Get Request
 def PeerRequestParse(request, host_name):
     
@@ -23,6 +25,9 @@ def PeerRequestParse(request, host_name):
     
     if os_header[0] != "OS:" or len(os_header) < 2:
         return (CommandType.INVALID, HttpStatus.BAD_REQUEST, None)
+    
+    if method_line[3] != VERSION_STR:
+        return (CommandType.INVALID, HttpStatus.VERSION_NOT_SUPPORTED, None)
     
     rfc = method_line[2]
     
@@ -76,6 +81,24 @@ def fileSend(header, file_path):
 def getRequest(rfc_num, target_host):
     
     msg = (f"GET RFC {rfc_num} {VERSION_STR}\r\n"
+           f"Host: {target_host}\r\n"
+           f"OS: {platform.system()} {platform.release()}\r\n\r\n")
+    
+    return msg
+
+# Setting our Get request callout
+def badGetRequest(rfc_num, target_host):
+    
+    msg = (f"GET RFC {rfc_num} {VERSION_STR}\r\n"
+           f"Host: {target_host}\r\n\r\n")
+    
+    return msg
+
+
+# Setting our Get request callout
+def oldGetRequest(rfc_num, target_host):
+    
+    msg = (f"GET RFC {rfc_num} {OLD_VERSION_STR}\r\n"
            f"Host: {target_host}\r\n"
            f"OS: {platform.system()} {platform.release()}\r\n\r\n")
     
