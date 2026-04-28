@@ -22,4 +22,6 @@ lookup <rfc_num>: Finds peers with that RFC number
 list: Lists all within the server index
 add <rfc_num> add a locally available rfc to the index
 get <rfc_num> <peer_host> <peer_port> downloads an RFC from another peer
+badget <rfc_num> <peer_host> <peer_port> sends a bad request
+oldget <rfc_num> <peer_host> <peer_port> sends a request for a version not supported
 quit - Exits the command window

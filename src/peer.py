@@ -160,7 +160,7 @@ if __name__ == '__main__':
                       "LIST: List all RFC's reachable with the connected server\r\n"
                       "ADD: Add a new RFC to the servers database\r\n"
                       "GET <rfc_num> <peer_host> <peer_port>: Download a new RFC from a peer\r\n"
-                      "BADGET <rfc_num> <peer_host> <peer_port>: Sends a bad request to the peer host and port \r\n" \
+                      "BADGET <rfc_num> <peer_host> <peer_port>: Sends a bad request to the peer host and port \r\n"
                       "OLDGET <rfc_num> <peer_host> <peer_port>: Sends a get with a different software version \r\n")
 
     finally:
