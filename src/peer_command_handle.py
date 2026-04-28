@@ -136,3 +136,7 @@ def lookupRequest(rfc_num, host_name, p2p_port, client_socket):
 def listRequest(host_name, p2p_port, client_socket):
     msg = f"LIST ALL P2P-CI/1.0\r\nHost: {host_name}\r\nPort: {p2p_port}\r\n\r\n"
     client_socket.send(msg.encode())
+    data = client_socket.recv(65535)
+    if not data:
+        return
+    print(data.decode())

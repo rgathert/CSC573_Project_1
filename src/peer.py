@@ -6,14 +6,14 @@ import sys
 ## Initializing all documents to send to server before server connection
 # Grabbing documents in RFC/folder
 
-# folder_path = './RFC/'
+
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print("Usage: peer.py <peer_name> <rfc_folder>")
+    if len(sys.argv) != 4:
+        print("Usage: peer.py <peer_name> <rfc_folder> <server_name>")
         sys.exit(1)
 
     host_name = sys.argv[1]
-
+    server_name = sys.argv[3]
     base_dir = os.path.dirname(os.path.abspath(__file__))
     folder_path = os.path.abspath(sys.argv[2])
     if not os.path.exists(folder_path):
@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
     # Generating my sockets these sockets will have a seperate process for them
     (p2p_socket, p2p_addr, p2p_port) = socket_fun.p2pRecvSocket()
-    client_socket = socket_fun.clientSocket()
+    client_socket = socket_fun.clientSocket(server_name)
 
     # Creating seperate process for my peer to peer reception socket
     p = mp.Process(target = socket_fun.p2pRecvHandler, args=(p2p_socket, rfc_paths, host_name))

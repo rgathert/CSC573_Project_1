@@ -33,25 +33,22 @@ def handleData(data, server_connection, client_name, port_num, peer_list, rfc_li
     
     if command_type == CommandType.LIST:
         message = server_command_handle.List(header, rfc_list)
-        # response = message + "\r\n"
+        
         server_connection.send(message.encode())
         return
     
     if command_type == CommandType.ADD:
-        # peer_obj = peer(client_name, port_num)
+        
         rfc_num = parsed_data["rfc_num"]
         title = parsed_data["title"]
 
         response = server_command_handle.Add(header, rfc_num, title, peer_obj, rfc_list)
         
-        # response_body = f"RFC {rfc_num} {title} {client_name} {port_num}\r\n"
-        # response = header + "\r\n" + response_body + "\r\n\r\n"
         server_connection.send(response.encode())
         return
     
     if command_type == CommandType.LOOKUP:
         rfc_num = parsed_data["rfc_num"]
-        # title = parsed_data["title"]
         response = server_command_handle.Lookup(header, rfc_num, rfc_list)
         if response is None:
             not_found_header = f"{VERSION_STR} {HttpStatus.NOT_FOUND.value} {returnPhrase(HttpStatus.NOT_FOUND)}\r\n\r\n"
@@ -66,7 +63,7 @@ def handleData(data, server_connection, client_name, port_num, peer_list, rfc_li
 # Server Socket to Listen to Clients
 def serverSocket():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind(('localhost',7734)) #TODO: Get a proper IP
+    server_socket.bind(('',7734)) 
     server_socket.listen(5)
     return server_socket
 
@@ -123,7 +120,6 @@ if __name__ == '__main__':
     print("Server Running...\n")
 
     # Adding in server specific functions not in general function
-    # TODO: Make these functions work to be server specific
     try:
 
         while True:

@@ -1,17 +1,17 @@
 import socket
 import os
-import multiprocessing as mp
+
 import sys
 import peer_command_handle
 from enum_codes import HttpStatus, returnPhrase, CommandType
 
 
-#TODO: Find way to abstract this
+
 VERSION_STR = "P2P-CI/1.0"
 
 def p2pRecvSocket():
     p2p_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    p2p_socket.bind(('',0)) # TODO: Use proper port num after testing
+    p2p_socket.bind(('',0))
     p2p_socket.listen(5) # 5 listeners max
     (address, port) = p2p_socket.getsockname()
     print(f"Peer socket Address: {address}, Port {port}\n")
@@ -19,10 +19,10 @@ def p2pRecvSocket():
 
 
 # Client socket to connect to server socket
-def clientSocket():
+def clientSocket(host_name):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        client_socket.connect(('localhost',7734)) #TODO: Get a proper IP, update port to 7734 eventually
+        client_socket.connect((host_name,7734)) 
     except:
         print(f"Error {HttpStatus.SERVICE_UNAVAILABLE.value}: Service Unavailable")
         sys.exit(HttpStatus.SERVICE_UNAVAILABLE.value)
@@ -33,7 +33,7 @@ def clientSocket():
 def p2pRecvHandler(p2p_socket, rfc_index, host_name):
     while True:
         
-        #TODO: See if we want a better way to leave? Maybe after quitting
+       
         try:
             (peer_connection, peer_address) = p2p_socket.accept()
         except KeyboardInterrupt:
@@ -41,8 +41,7 @@ def p2pRecvHandler(p2p_socket, rfc_index, host_name):
         
         data = peer_connection.recv(4096).decode()
 
-        #TODO: Remove this test print later
-        print(f"Recieved request from {peer_address}")
+        
         
         (command_type, return_code, parsed_request) = peer_command_handle.PeerRequestParse(data, host_name)
         
@@ -54,8 +53,8 @@ def p2pRecvHandler(p2p_socket, rfc_index, host_name):
         
         rfc_num = parsed_request["rfc_val"]
         if rfc_num not in rfc_index:
-            header = f"{VERSION_STR} {return_code.value} {returnPhrase(return_code.value)}"
-            peer_connection.send(((header + "\r\n")).encode())
+            not_found_header = f"{VERSION_STR} {HttpStatus.NOT_FOUND.value} {returnPhrase(HttpStatus.NOT_FOUND)}\r\n\r\n"
+            peer_connection.send((not_found_header).encode())
             peer_connection.close()
             continue
 
@@ -85,7 +84,7 @@ def p2pSendHandler(peer_host, peer_port):
         return None
 
 
-def fileRecvHandler(recv_socket, rfc_num):
+def fileRecvHandler(recv_socket, rfc_num, save_folder):
 
     # Starting out with bytestream then will do conversion later
     buffer =  b""
@@ -95,7 +94,7 @@ def fileRecvHandler(recv_socket, rfc_num):
         chunk = recv_socket.recv(4096)
         if not chunk: #empty connection
              break
-        buffer = buffer + chunk
+        buffer += chunk
     
     # Checking to make sure my header is good, if it is, then check to make sure my byte length is good
     header_idx = buffer.find(b"\r\n\r\n") # Assuming there is not carriage return in the actual file
@@ -126,13 +125,15 @@ def fileRecvHandler(recv_socket, rfc_num):
     data_amount = int(content_sizing_sections[1])
     if len(rfc_bytes) != data_amount:
         print("Error 500 Internal Server Error\n") # TODO: Give this a better statement
+        return -1
 
     # Making a directory in case this peer doesnt have one made yet
-    os.makedirs("./RFC", exist_ok = True)
-    rfc_path = "./RFC/rfc" + rfc_num + ".txt"
+    os.makedirs(save_folder, exist_ok = True)
+    rfc_path = os.path.join(save_folder, f"rfc{rfc_num}.txt")
 
-    f = open(rfc_path,"wb")
-    f.write(rfc_bytes)
+    with open(rfc_path,"wb") as f:
+        f.write(rfc_bytes)
+
     print("Saved RFC Data\n")
     recv_socket.close()
     return 0
