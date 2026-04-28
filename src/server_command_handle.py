@@ -1,9 +1,6 @@
 from enum_codes import HttpStatus, CommandType
 from server_object import peer, rfc_idx
 
-# TODO: See if it would be better to add here or to add in server section and break out.
-# Currently, ADD requires the manager since multiple processes can append to that list
-
 # Following function parses the command being requested to make sure its not a bad request
 # If it is a valid request, it returns the request type, along with an HTTPStatus of OK
 # This will be used for error handling later down the line.
@@ -17,9 +14,7 @@ def ServerRequestParse(command_string, client_name, port_num):
     host_header = command_lines[1].split(' ')
     port_header = command_lines[2].split(' ')
 
-    # TODO: Remove debugging line before submitting
-    print(f"Method Line: {method_line}\nHost Header: {host_header}\nPort Header: {port_header}\n")
-
+    
     # Making sure the host and port header match what is expected, additionally, makes
     # sure our version number is ok.
     if host_header[0] != "Host:" or host_header[1] != client_name:
@@ -29,7 +24,6 @@ def ServerRequestParse(command_string, client_name, port_num):
     
     
     # Simple List Request 
-    # TODO: Add in handling for if the list array is too long (extra data added)
     if len(method_line) == 3 and method_line[0] == "LIST" and method_line[1] == "ALL":
         if method_line[2] != "P2P-CI/1.0":
             return (CommandType.LIST, HttpStatus.VERSION_NOT_SUPPORTED, None)
