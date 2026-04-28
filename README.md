@@ -14,7 +14,7 @@ python src/peer.py <peer_IP> peer1_rfc <server_IP>
 (server and peer IP is localhost if testing locally, IP of device if testing remotely)
 
 Running secondary peer:
-python test_files/peer.py <peer_IP> peer2_rfc <server_IP> 
+python src/peer.py <peer_IP> peer2_rfc <server_IP> 
 (server and peer IP is localhost if testing locally, IP of device if testing remotely)
 
 Commands for peer 
