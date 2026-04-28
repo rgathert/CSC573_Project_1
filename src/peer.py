@@ -101,7 +101,7 @@ if __name__ == '__main__':
                 msg = peer_command_handle.getRequest(rfc_type, peer_host)
                 peer_get_socket.send(msg.encode())
                 return_code = socket_fun.fileRecvHandler(peer_get_socket, rfc_type, folder_path)
-
+                
                 if(return_code != 0):
                     print("Error During file transfer, please try again")
                 else:

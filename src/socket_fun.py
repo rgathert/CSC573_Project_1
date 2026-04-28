@@ -41,7 +41,7 @@ def p2pRecvHandler(p2p_socket, rfc_index, host_name):
         
         data = peer_connection.recv(4096).decode()
 
-        
+        print(f"{data}\n")
         
         (command_type, return_code, parsed_request) = peer_command_handle.PeerRequestParse(data, host_name)
         
@@ -101,7 +101,7 @@ def fileRecvHandler(recv_socket, rfc_num, save_folder):
     if header_idx == -1:
         print("Error 500 Internal Server error\n") # TODO: Get correct error code
         return -1
-    
+    print(f"{buffer.decode()}\n")
     header = buffer[:header_idx].decode()
 
     rfc_bytes = buffer[header_idx + 4:]

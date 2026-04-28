@@ -65,6 +65,7 @@ def serverSocket():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind(('',7734)) 
     server_socket.listen(5)
+    print("Listening on port 7734\n")
     return server_socket
 
 
