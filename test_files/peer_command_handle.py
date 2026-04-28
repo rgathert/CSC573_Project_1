@@ -3,7 +3,7 @@ import datetime
 import platform
 import os
 ## Functions for handling peer to peer and peer to server communication requests
-#TODO: Find way to abstract this
+
 VERSION_STR = "P2P-CI/1.0"
 
 # Parsing a Get Request
@@ -16,9 +16,7 @@ def PeerRequestParse(request, host_name):
     host_header = request_lines[1].split(' ')
     os_header   = request_lines[2].split(' ',1)
 
-    # TODO: Remove debugging line before submASitting
-    print(f"Method_line: {method_line}\nHost_header: {host_header}\nOS_Header: {os_header}\n")
-
+    
     # Making sure the host header match what is expected
     if host_header[0] != "Host:" or host_header[1] != host_name:
         return (CommandType.INVALID, HttpStatus.BAD_REQUEST, None)
@@ -65,17 +63,16 @@ def fileSend(header, file_path):
     data = f.read()
     f.close()
 
-    content_len_msg = "Content-Length: " + str(len(data)) + "\r\n"
-    content_type_msg = "Content-Type: text/plain \r\n"
+    content_len_msg = "Content-Length: " + str(len(data.decode().encode())) + "\r\n"
+    content_type_msg = "Content-Type: text/plain\r\n"
 
     # Constructing the message
-    msg = header + date_msg + os_msg + file_msg + content_len_msg + content_type_msg + "\r\n" + data.decode()
+    msg = header + date_msg + os_msg + file_msg + content_len_msg + content_type_msg +"\r\n"+ data.decode()
 
     return msg
 
 
-# TODO: Build the GET, LIST, LOOKUP, and ADD requests as seperate functions below
-
+# Setting our Get request callout
 def getRequest(rfc_num, target_host):
     
     msg = (f"GET RFC {rfc_num} {VERSION_STR}\r\n"
@@ -86,39 +83,60 @@ def getRequest(rfc_num, target_host):
 
 def addRequest(rfc_num, host_name, p2p_port, client_socket, rfc_paths):
 
-    file_path = f"./RFC/rfc{rfc_num}.txt"
-    if not os.path.exists(file_path):
-        print(f"Unable to find file\n")
-        return
+    rfc_num = int(rfc_num)
+
+    file_path = rfc_paths.get(rfc_num)
+    if file_path is None or not os.path.exists(file_path):
+        print(f"Unable to find file for RFC {rfc_num}")
+        return -1
 
     msg = (f"ADD RFC {rfc_num} P2P-CI/1.0\r\n"
             f"Host: {host_name}\r\n"
             f"Port: {p2p_port}\r\n"
-            f"Title: {rfc_num}.txt\r\n\r\n")
+            f"Title: rfc{rfc_num}.txt\r\n\r\n")
     
     client_socket.send(msg.encode())
-    data = client_socket.recv(65535)
+    data = client_socket.recv(4096)
+
+    if not data:
+        print("No response from server")
+        return -1
 
     return_message = data.decode()
     header_lines = return_message.split("\r\n")
     status_sections = header_lines[0].split(" ")
 
+    if len(status_sections) < 2:
+        print("Malformed ADD response from server")
+        return -1
+    
     if int(status_sections[1]) == HttpStatus.OK.value:
-        rfc_paths[int(rfc_num)] = file_path
+        rfc_paths[rfc_num] = file_path
 
+    return 0
 
+def lookupRequest(rfc_num, host_name, p2p_port, client_socket):
+    msg = (f"LOOKUP RFC {rfc_num} P2P-CI/1.0\r\n"
+           f"Host: {host_name}\r\n"
+           f"Port: {p2p_port}\r\n"
+           f"Title: rfc{rfc_num}.txt\r\n\r\n")
+    
+    
+    
+    client_socket.send(msg.encode())
+    data = client_socket.recv(4096)
+    if not data:
+        return None
 
-    #TODO: Remove this debug message later on.
+    return_message = data.decode()
+    
     print(return_message)
-
-
-
-    return
+    return return_message
 
 def listRequest(host_name, p2p_port, client_socket):
     msg = f"LIST ALL P2P-CI/1.0\r\nHost: {host_name}\r\nPort: {p2p_port}\r\n\r\n"
     client_socket.send(msg.encode())
-
-    # TODO: Remove this later
     data = client_socket.recv(65535)
+    if not data:
+        return
     print(data.decode())

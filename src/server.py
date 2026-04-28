@@ -1,5 +1,4 @@
 import socket
-import os
 import sys
 import multiprocessing as mp
 import server_command_handle
@@ -8,10 +7,7 @@ from server_object import peer, rfc_idx
 VERSION_STR = "P2P-CI/1.0"
 
 
-peer_list = []
-rfc_list = []
-
-# Handling server dat
+# Handling server data
 def handleData(data, server_connection, client_name, port_num, peer_list, rfc_list):
     
     # Formatting the data into the fields needed
@@ -37,25 +33,22 @@ def handleData(data, server_connection, client_name, port_num, peer_list, rfc_li
     
     if command_type == CommandType.LIST:
         message = server_command_handle.List(header, rfc_list)
-        # response = message + "\r\n"
+        
         server_connection.send(message.encode())
         return
     
     if command_type == CommandType.ADD:
-        # peer_obj = peer(client_name, port_num)
+        
         rfc_num = parsed_data["rfc_num"]
         title = parsed_data["title"]
 
         response = server_command_handle.Add(header, rfc_num, title, peer_obj, rfc_list)
         
-        # response_body = f"RFC {rfc_num} {title} {client_name} {port_num}\r\n"
-        # response = header + "\r\n" + response_body + "\r\n\r\n"
         server_connection.send(response.encode())
         return
     
     if command_type == CommandType.LOOKUP:
         rfc_num = parsed_data["rfc_num"]
-        # title = parsed_data["title"]
         response = server_command_handle.Lookup(header, rfc_num, rfc_list)
         if response is None:
             not_found_header = f"{VERSION_STR} {HttpStatus.NOT_FOUND.value} {returnPhrase(HttpStatus.NOT_FOUND)}\r\n\r\n"
@@ -65,74 +58,14 @@ def handleData(data, server_connection, client_name, port_num, peer_list, rfc_li
         return
     
 
-    server_connection.send(message.encode())
 
 
 # Server Socket to Listen to Clients
 def serverSocket():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind(('localhost',7734)) #TODO: Get a proper IP
+    server_socket.bind(('',7734)) 
     server_socket.listen(5)
     return server_socket
-
-# def clientHandling(server_connection, peer_list: list, rfc_list: list):
-    
-#     # TODO: Make sure we can handle large data fields from the client on startup
-    
-    
-    
-#     data = server_connection.recv(4096).decode()
-#     print(f"Raw startup data: {data}\n")
-#     (client_part, port_part, rfc_part) = data.split(',')
-#     client_name = client_part.split(': ')[1]
-#     port_num = int(port_part.split(': ')[1])
-#     rfc_titles = rfc_part.split(': ')[1].split()
-#     print(f"Client name: {client_name}, port: {port_num}")
-#     print(f"RFC titles/raw IDs: {rfc_titles}")
-#     peer_obj = peer(client_name, port_num)
-#     peer_list.append(peer_obj)
-    
-#     print(f"Peer list size: {len(peer_list)}") 
-
-#     # Creating title object for each rfc title (Im not using titles, just num instead)
-#     for title in rfc_titles:
-#         rfc_list.append(rfc_idx(title, rfc_num=title, peer_obj=peer_obj))
-#         print(f"RFC added -> {title} with RFC number {title} from {client_name}")
-    
-    
-#     print(f"RFC list size: {len(rfc_list)}")
-
-#     server_connection.send(b"REGISTERED")
-
-#     print(f"Connection Established")
-    
-#     while True:
-#         try:
-#             data = server_connection.recv(4096)
-#         except ConnectionResetError:
-#             print(f"Client: {client_name} closed")
-#             break
-#         except KeyboardInterrupt:
-#             print("Client handler shutting down")
-#             break
-#         if not data:   
-#             print(f"Client: {client_name} closed")
-#             break
-#         data = data.decode()
-
-#         print(f"Received command from {client_name}: {data}")
-
-#         handleData(data, server_connection, client_name, port_num, peer_list, rfc_list)
-    
-
-#     server_connection.close()
-#     for i in range(len(rfc_list) - 1, -1, -1):
-#         if rfc_list[i].host_name == client_name and rfc_list[i].port_num == port_num:
-#             del rfc_list[i]
-
-#     for i in range(len(peer_list) - 1, -1, -1):
-#         if peer_list[i].host_name == client_name and peer_list[i].port_num == port_num:
-#             del peer_list[i]
 
 
 def clientHandling(server_connection, peer_list, rfc_list):
@@ -184,10 +117,9 @@ if __name__ == '__main__':
     peer_list = manager.list()
     rfc_list = manager.list()
     server_socket = serverSocket()
-    print("Server Running...\n")
+    print("Server Started\n")
 
     # Adding in server specific functions not in general function
-    # TODO: Make these functions work to be server specific
     try:
 
         while True:
@@ -198,6 +130,6 @@ if __name__ == '__main__':
             server_process.start()
         
     except KeyboardInterrupt:
-        print("Shutting down server...")
+        print("Stopping server\n")
         server_socket.close()
         sys.exit(0)

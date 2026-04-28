@@ -1,17 +1,17 @@
 import socket
 import os
-import multiprocessing as mp
+
 import sys
 import peer_command_handle
 from enum_codes import HttpStatus, returnPhrase, CommandType
 
 
-#TODO: Find way to abstract this
+
 VERSION_STR = "P2P-CI/1.0"
 
 def p2pRecvSocket():
     p2p_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    p2p_socket.bind(('',0)) # TODO: Use proper port num after testing
+    p2p_socket.bind(('',0))
     p2p_socket.listen(5) # 5 listeners max
     (address, port) = p2p_socket.getsockname()
     print(f"Peer socket Address: {address}, Port {port}\n")
@@ -19,10 +19,10 @@ def p2pRecvSocket():
 
 
 # Client socket to connect to server socket
-def clientSocket():
+def clientSocket(host_name):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        client_socket.connect(('localhost',7734)) #TODO: Get a proper IP, update port to 7734 eventually
+        client_socket.connect((host_name,7734)) 
     except:
         print(f"Error {HttpStatus.SERVICE_UNAVAILABLE.value}: Service Unavailable")
         sys.exit(HttpStatus.SERVICE_UNAVAILABLE.value)
@@ -33,7 +33,7 @@ def clientSocket():
 def p2pRecvHandler(p2p_socket, rfc_index, host_name):
     while True:
         
-        #TODO: See if we want a better way to leave? Maybe after quitting
+       
         try:
             (peer_connection, peer_address) = p2p_socket.accept()
         except KeyboardInterrupt:
@@ -41,8 +41,7 @@ def p2pRecvHandler(p2p_socket, rfc_index, host_name):
         
         data = peer_connection.recv(4096).decode()
 
-        #TODO: Remove this test print later
-        print(f"Recieved request from {peer_address}")
+        
         
         (command_type, return_code, parsed_request) = peer_command_handle.PeerRequestParse(data, host_name)
         
